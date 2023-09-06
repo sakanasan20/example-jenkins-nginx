@@ -21,6 +21,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 dir('/usr/share/docker/nginx') {
+                    sh 'docker compose build'
                     sh 'docker stack deploy -c docker-compose.yml nginx'
                 }
             }
