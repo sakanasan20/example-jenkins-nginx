@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
 
     stages {
         stage('Fetch') {
@@ -18,10 +22,33 @@ pipeline {
             }
         }
         
-        stage('Deploy') {
+        stage('Build') {
             steps {
                 dir('/usr/share/docker/nginx') {
                     sh 'docker compose build'
+                }
+            }
+        }
+        
+        stage('Login') {
+            steps {
+                dir('/usr/share/docker/nginx') {
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                }
+            }
+        }
+        
+        stage('Push') {
+            steps {
+                dir('/usr/share/docker/nginx') {
+                    sh 'docker push nickchen20/nginx'
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                dir('/usr/share/docker/nginx') {
                     sh 'docker stack deploy -c docker-compose.yml nginx'
                 }
             }
